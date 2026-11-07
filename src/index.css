@@ -1,0 +1,54 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  body {
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    touch-action: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  h1, h2, h3, .font-display {
+    font-family: 'Outfit', 'Plus Jakarta Sans', system-ui, sans-serif;
+  }
+
+  code, kbd, pre, .font-mono {
+    font-family: 'JetBrains Mono', monospace;
+  }
+}
+
+/* Paper background subtle pattern */
+.paper-texture {
+  background-color: #faf8f5;
+  background-image: radial-gradient(#d1cfc7 0.75px, transparent 0.75px);
+  background-size: 20px 20px;
+}
+
+.paper-texture-dark {
+  background-color: #1a1918;
+  background-image: radial-gradient(#33312e 0.75px, transparent 0.75px);
+  background-size: 20px 20px;
+}
+
+.lined-paper {
+  background-color: #fdfbf7;
+  background-image: linear-gradient(to bottom, transparent 27px, #e3dfd3 28px);
+  background-size: 100% 28px;
+}
+
+.grid-paper {
+  background-color: #fdfbf7;
+  background-image: linear-gradient(to right, #e7e3d8 1px, transparent 1px),
+                    linear-gradient(to bottom, #e7e3d8 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.cornell-paper {
+  background-color: #fdfbf7;
+}
+
+/* Prevent accidental browser scrolling during pen writing */
+canvas.ink-canvas {
+  touch-action: none;
+  cursor: crosshair;
+}

@@ -1,0 +1,6 @@
+{
+  "name": "Scriptor - Smart Pen PDF Study Platform",
+  "description": "High-fidelity digital ink and PDF annotation platform with pressure-sensitive smart pen, palm rejection, study aids, audio memos, and flashcards.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
