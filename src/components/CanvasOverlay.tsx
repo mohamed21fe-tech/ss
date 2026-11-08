@@ -90,6 +90,9 @@ export const CanvasOverlay: React.FC<CanvasOverlayProps> = ({
 
   // Multi-touch tracking for 2-finger tap undo
   const touchPointsCountRef = useRef(0);
+  // Track every finger on the page so a pinch-zoom never draws
+  const activeTouchIdsRef = useRef<Set<number>>(new Set());
+  const isPinchingRef = useRef(false);
   const lastTouchTimeRef = useRef(0);
 
   // Setup active canvas backing buffer resolution once on width/height/scale change
@@ -273,8 +276,35 @@ export const CanvasOverlay: React.FC<CanvasOverlayProps> = ({
     }
   };
 
+  // Discard the stroke/shape/lasso currently being drawn without saving it
+  const cancelActiveDrawing = () => {
+    isDrawingRef.current = false;
+    lassoDragStartRef.current = null;
+    currentPointsRef.current = [];
+    startPointRef.current = null;
+    lastPointRef.current = null;
+    needsRenderRef.current = false;
+    if (rafIdRef.current !== null) {
+      cancelAnimationFrame(rafIdRef.current);
+      rafIdRef.current = null;
+    }
+    const activeCanvas = activeCanvasRef.current;
+    const ctx = activeCanvas?.getContext('2d');
+    if (activeCanvas && ctx) ctx.clearRect(0, 0, width * scale, height * scale);
+  };
+
   // Pointer Down
   const handlePointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    // Two or more fingers = zooming/panning: cancel any stroke in progress and draw nothing
+    if (e.pointerType === 'touch') {
+      activeTouchIdsRef.current.add(e.pointerId);
+      if (activeTouchIdsRef.current.size >= 2 || isPinchingRef.current) {
+        isPinchingRef.current = true;
+        cancelActiveDrawing();
+        return;
+      }
+    }
+
     // Palm Rejection Check
     if (palmRejection && e.pointerType === 'touch') {
       touchPointsCountRef.current += 1;
@@ -332,6 +362,7 @@ export const CanvasOverlay: React.FC<CanvasOverlayProps> = ({
   const processPointerMove = useCallback((e: PointerEvent | React.PointerEvent<HTMLCanvasElement>) => {
     if (!isDrawingRef.current) return;
     if (palmRejection && e.pointerType === 'touch') return;
+    if (isPinchingRef.current || activeTouchIdsRef.current.size >= 2) return;
 
     // Harvest sub-frame stylus events via getCoalescedEvents for 120Hz/240Hz digitizers
     const coalesced: PointerEvent[] =
@@ -393,6 +424,16 @@ export const CanvasOverlay: React.FC<CanvasOverlayProps> = ({
 
   // Pointer Up / Cancel
   const handlePointerUp = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    if (e.pointerType === 'touch') {
+      activeTouchIdsRef.current.delete(e.pointerId);
+      if (isPinchingRef.current) {
+        // Pinch gesture: never commit anything; reset once every finger is lifted
+        if (activeTouchIdsRef.current.size === 0) isPinchingRef.current = false;
+        cancelActiveDrawing();
+        return;
+      }
+    }
+
     if (palmRejection && e.pointerType === 'touch') {
       touchPointsCountRef.current = Math.max(0, touchPointsCountRef.current - 1);
       return;
