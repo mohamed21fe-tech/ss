@@ -51,7 +51,15 @@ export default function App() {
   const [currentView, setCurrentView] = useState<'workspace' | 'menu'>('menu');
 
   // Theme state
-  const [isDark, setIsDark] = useState(false);
+  const [isDark, setIsDark] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem('scriptor_theme');
+      if (saved) return saved === 'dark';
+      return window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false;
+    } catch {
+      return false;
+    }
+  });
 
   // Documents and Pages Map
   const [documents, setDocuments] = useState<DocumentItem[]>(SAMPLE_DOCUMENTS);
@@ -127,6 +135,7 @@ export default function App() {
     } else {
       document.documentElement.classList.remove('dark');
     }
+    try { localStorage.setItem('scriptor_theme', isDark ? 'dark' : 'light'); } catch { /* ignore */ }
   }, [isDark]);
 
   // Load document pages and annotations when activeDocId changes

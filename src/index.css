@@ -52,3 +52,58 @@ canvas.ink-canvas {
   touch-action: none;
   cursor: crosshair;
 }
+
+/* ───────────── Smoothness & polish layer ───────────── */
+:root {
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+
+/* Smooth theme switching (colors only, so ink/canvas never lag) */
+body, header, aside, nav, button, input, select, textarea, [class*="bg-"], [class*="border-"] {
+  transition-property: background-color, border-color, color, fill, stroke, box-shadow, opacity, transform;
+  transition-duration: 200ms;
+  transition-timing-function: var(--ease-out);
+}
+canvas, canvas * { transition: none !important; }
+
+/* Interactive feedback */
+button:not(:disabled), [role="button"] { cursor: pointer; }
+button:not(:disabled):active { transform: scale(0.96); }
+button:disabled { cursor: not-allowed; }
+
+/* Document cards lift on hover */
+.group.cursor-pointer.rounded-2xl:hover { transform: translateY(-3px); }
+.group.cursor-pointer.rounded-2xl:active { transform: translateY(-1px) scale(0.99); }
+
+/* Keyboard focus */
+:focus-visible { outline: 2px solid #f59e0b; outline-offset: 2px; border-radius: 6px; }
+input:focus-visible, textarea:focus-visible, select:focus-visible { outline-offset: 0; }
+
+/* Modals: backdrop fade + panel pop-in */
+@keyframes sc-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes sc-pop { from { opacity: 0; transform: translateY(14px) scale(0.96); } to { opacity: 1; transform: none; } }
+@keyframes sc-rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+div.fixed.inset-0.z-50 { animation: sc-fade 180ms ease-out both; }
+div.fixed.inset-0.z-50 > div { animation: sc-pop 280ms var(--ease-spring) both; }
+
+/* Staggered entrance for grids of cards */
+.grid > .group.cursor-pointer { animation: sc-rise 380ms var(--ease-out) both; }
+.grid > .group.cursor-pointer:nth-child(2) { animation-delay: 40ms; }
+.grid > .group.cursor-pointer:nth-child(3) { animation-delay: 80ms; }
+.grid > .group.cursor-pointer:nth-child(4) { animation-delay: 120ms; }
+.grid > .group.cursor-pointer:nth-child(5) { animation-delay: 160ms; }
+.grid > .group.cursor-pointer:nth-child(n+6) { animation-delay: 200ms; }
+
+/* Slimmer, friendlier scrollbars */
+* { scrollbar-width: thin; scrollbar-color: rgb(168 162 158 / 0.45) transparent; }
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-thumb { background: rgb(168 162 158 / 0.45); border-radius: 999px; border: 2px solid transparent; background-clip: content-box; }
+::-webkit-scrollbar-thumb:hover { background: rgb(120 113 108 / 0.7); background-clip: content-box; }
+
+/* Respect reduced-motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-delay: 0ms !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+}
