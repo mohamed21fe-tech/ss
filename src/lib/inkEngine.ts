@@ -101,6 +101,29 @@ export function renderStrokeToCanvas(
 ) {
   if (stroke.points.length === 0) return;
 
+  // Tiny strokes (a tap or a very short flick, e.g. Arabic dots) render as a solid dot
+  let pathLength = 0;
+  for (let i = 1; i < stroke.points.length; i++) {
+    pathLength += Math.hypot(
+      stroke.points[i].x - stroke.points[i - 1].x,
+      stroke.points[i].y - stroke.points[i - 1].y
+    );
+  }
+  if (pathLength < 3) {
+    const cx = stroke.points.reduce((a, p) => a + p.x, 0) / stroke.points.length;
+    const cy = stroke.points.reduce((a, p) => a + p.y, 0) / stroke.points.length;
+    const radius = Math.max(1.2, (stroke.width * (stroke.tool === 'pen' ? 0.6 : 0.5)) / 2 + pathLength / 2);
+    ctx.save();
+    ctx.globalAlpha = stroke.opacity || (stroke.tool === 'highlighter' ? 0.35 : 1);
+    ctx.globalCompositeOperation = stroke.tool === 'highlighter' ? 'multiply' : 'source-over';
+    ctx.fillStyle = stroke.color;
+    ctx.beginPath();
+    ctx.arc(cx * scale, cy * scale, radius * scale, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+    return;
+  }
+
   ctx.save();
 
   if (stroke.tool === 'highlighter') {

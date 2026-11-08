@@ -429,7 +429,8 @@ export const CanvasOverlay: React.FC<CanvasOverlayProps> = ({
     }
 
     if (tool === 'pen' || tool === 'highlighter') {
-      if (currentPointsRef.current.length > 1) {
+      // Keep single-point taps too, so Arabic dots (nuqat) are never lost
+      if (currentPointsRef.current.length >= 1) {
         const newStroke: InkStroke = {
           id: `stroke-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
           tool,
